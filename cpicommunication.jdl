@@ -1,0 +1,55 @@
+entity Country {
+	countryName String required,
+    countryNameAbbr String required,
+    countryNameChinese String,
+    dialCode String
+}
+
+entity Port {
+	portCode String,
+    portName String,
+    portNameChinese String
+}
+
+relationship ManyToOne {
+	Port{country(countryName)} to Country
+}
+
+entity Correspondent {
+	correspondentName String required,
+    faxNumber String required,
+    address String,
+    telephoneOffice String,
+    telephoneAlternate String,
+    webSite String,
+}
+
+relationship ManyToOne {
+	Correspondent{port(portName)} to Port
+}
+
+entity CorrespondentContact {
+	correspondentContactName String required,
+    eMail String required,
+    telephoneOffice String,
+    telephone String,
+    webSite String,
+}
+
+relationship ManyToOne {
+	CorrespondentContact{correspondent(correspondentName)} to Correspondent
+}
+
+// Set pagination options
+//paginate PartnerType with infinite-scroll
+paginate * with pagination
+
+dto * with mapstruct
+
+//Set service options to all except few
+service * with serviceImpl //except PartnerType
+
+filter * //except PartnerType
+
+
+microservice * with cpicommunication
