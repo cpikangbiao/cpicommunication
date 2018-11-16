@@ -24,6 +24,7 @@ import com.cpi.communication.service.bean.CorrespondentBean;
 import com.cpi.communication.service.bean.CorrespondentContactBean;
 import com.cpi.communication.service.bean.CountryBean;
 import com.cpi.communication.service.bean.PortBean;
+import com.cpi.communication.service.utility.common.TimeFormatUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,10 +59,7 @@ public class CorrespondentBookUtility {
     private CorrespondentContactRepository correspondentContactRepository;
 
     @Autowired
-    private JasperReportUtility jasperReportUtility;
-
-    @Autowired
-    private ExcelUtility excelUtility;
+    private CorrespondentToolUtility correspondentToolUtility;
 
     public CorrespondentBookUtility(CountryRepository countryRepository, PortRepository portRepository, CorrespondentRepository correspondentRepository, CorrespondentContactRepository correspondentContactRepository) {
         this.countryRepository = countryRepository;
@@ -75,7 +73,7 @@ public class CorrespondentBookUtility {
         ResponseEntity<byte[]> responseEntity  = new ResponseEntity(HttpStatus.OK);
         parameter.put("results", createCorrespondentBookBean());
         parameter.put("jxlid", 2);
-        responseEntity  = excelUtility.processExcel(parameter);
+        responseEntity  = correspondentToolUtility.excelUtility.processExcel(parameter);
 
         return responseEntity.getBody();
     }
@@ -88,7 +86,20 @@ public class CorrespondentBookUtility {
         Map<String, Object> subParameter = new HashMap<String, Object>();
         parameter.put("SUBREPORT_PARAMETER", subParameter);
 
-        responseEntity  = jasperReportUtility.processPDF(jasperFilePath, parameter);
+        responseEntity  = correspondentToolUtility.jasperReportUtility.processPDF(jasperFilePath, parameter);
+
+        return responseEntity.getBody();
+    }
+
+    public byte[] createCorrespondentBookWord() {
+        Map<String, Object> parameter = new HashMap<String, Object>();
+        ResponseEntity<byte[]> responseEntity  = new ResponseEntity(HttpStatus.OK);
+        String jasperFilePath = "Correspondent_Book.jasper";
+        parameter.put("datasource", createCorrespondentBookBean());
+        Map<String, Object> subParameter = new HashMap<String, Object>();
+        parameter.put("SUBREPORT_PARAMETER", subParameter);
+
+        responseEntity  = correspondentToolUtility.jasperReportUtility.processWord(jasperFilePath, parameter);
 
         return responseEntity.getBody();
     }
@@ -161,12 +172,15 @@ public class CorrespondentBookUtility {
     protected StringBuilder createCorrespondentBookName() {
         StringBuilder correspondentBookName = new StringBuilder();
         correspondentBookName.append("CPI Correspondent List (");
-        correspondentBookName.append(Instant.now().toString()).append(")");
+        correspondentBookName.append(TimeFormatUtility.formatEnglishInstant(Instant.now())).append(")");
         return correspondentBookName;
     }
 
     public String createCorrespondentBookNamePDF() {
         return createCorrespondentBookName().append(".pdf").toString();
+    }
+    public String createCorrespondentBookNameWord() {
+        return createCorrespondentBookName().append(".docx").toString();
     }
     public String createCorrespondentBookNameExcel() {
         return createCorrespondentBookName().append(".xlsx").toString();

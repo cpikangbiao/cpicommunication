@@ -41,6 +41,10 @@ public interface JasperReportUtility {
     ResponseEntity<byte[]> processHTML(@RequestParam(value = "filename", required = true) String jasperFileName,
                                        @RequestBody Map<String, Object> parameters);
 
+    @RequestMapping(value = "/api/jasperreport/word-withfile", method = RequestMethod.POST)
+    ResponseEntity<byte[]> processWord(@RequestParam(value = "filename", required = true) String jasperFileName,
+                                       @RequestBody Map<String, Object> parameters);
+
     @PostMapping("/api/test/addimage")
     @Timed
     Map<String, Object> addImageMapParamete(@RequestParam(value = "path", required = true) String path,
