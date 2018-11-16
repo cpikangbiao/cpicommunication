@@ -1,8 +1,11 @@
 package com.cpi.communication.repository;
 
 import com.cpi.communication.domain.Correspondent;
+import com.cpi.communication.domain.Port;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 
 /**
@@ -12,4 +15,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CorrespondentRepository extends JpaRepository<Correspondent, Long>, JpaSpecificationExecutor<Correspondent> {
 
+    List<Correspondent> findAllByPortOrderByCorrespondentName(Port port);
 }
