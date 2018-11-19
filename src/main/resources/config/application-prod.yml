@@ -68,10 +68,18 @@ spring:
     liquibase:
         contexts: prod
     mail:
-        host: localhost
-        port: 25
-        username:
-        password:
+        host: smtp.partner.outlook.cn
+        port: 587
+        username: admin@chinapandi.com
+        password: 20080122Pandi
+        protocol: smtp
+        tls: true
+        auth: true
+        from: admin@chinapandi.com
+        properties.mail.smtp:
+            auth: true
+            starttls.enable: true
+            ssl.trust: smtp.partner.outlook.cn
     thymeleaf:
         cache: true
     zipkin: # Use the "zipkin" Maven profile to have the Spring Cloud Zipkin dependencies

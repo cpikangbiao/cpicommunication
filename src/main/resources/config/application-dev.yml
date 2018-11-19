@@ -73,10 +73,18 @@ spring:
     liquibase:
         contexts: dev
     mail:
-        host: localhost
-        port: 25
-        username:
-        password:
+        host: smtp.partner.outlook.cn
+        port: 587
+        username: admin@chinapandi.com
+        password: 20080122Pandi
+        protocol: smtp
+        tls: true
+        auth: true
+        from: admin@chinapandi.com
+        properties.mail.smtp:
+            auth: true
+            starttls.enable: true
+            ssl.trust: smtp.partner.outlook.cn
     messages:
         cache-duration: PT1S # 1 second, see the ISO 8601 standard
     thymeleaf:
