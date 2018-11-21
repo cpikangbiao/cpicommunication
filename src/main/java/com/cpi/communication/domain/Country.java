@@ -37,6 +37,10 @@ public class Country implements Serializable {
     @Column(name = "dial_code")
     private String dialCode;
 
+
+    @Column(name = "time_zone")
+    private String timeZone;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -53,6 +57,19 @@ public class Country implements Serializable {
     public Country countryName(String countryName) {
         this.countryName = countryName;
         return this;
+    }
+
+    public Country timeZone(String timeZone) {
+        this.timeZone = timeZone;
+        return this;
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 
     public void setCountryName(String countryName) {

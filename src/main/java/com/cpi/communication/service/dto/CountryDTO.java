@@ -21,6 +21,16 @@ public class CountryDTO implements Serializable {
 
     private String dialCode;
 
+    private String timeZone;
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
+    }
+
     public Long getId() {
         return id;
     }
@@ -90,6 +100,7 @@ public class CountryDTO implements Serializable {
             ", countryNameAbbr='" + getCountryNameAbbr() + "'" +
             ", countryNameChinese='" + getCountryNameChinese() + "'" +
             ", dialCode='" + getDialCode() + "'" +
+            ", timeZone='" + getTimeZone() + "'" +
             "}";
     }
 }
