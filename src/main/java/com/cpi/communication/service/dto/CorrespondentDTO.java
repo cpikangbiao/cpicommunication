@@ -25,6 +25,8 @@ public class CorrespondentDTO implements Serializable {
 
     private String webSite;
 
+    private String email;
+
     private Long portId;
 
     private String portPortName;
@@ -99,6 +101,14 @@ public class CorrespondentDTO implements Serializable {
 
     public void setPortPortName(String portPortName) {
         this.portPortName = portPortName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override

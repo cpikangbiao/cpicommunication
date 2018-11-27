@@ -44,6 +44,10 @@ public class Correspondent extends AbstractAuditingEntity implements Serializabl
     @Column(name = "web_site")
     private String webSite;
 
+
+    @Column(name = "email")
+    private String email;
+
     @ManyToOne
     @JsonIgnoreProperties("")
     private Port port;
@@ -133,6 +137,18 @@ public class Correspondent extends AbstractAuditingEntity implements Serializabl
 
     public void setWebSite(String webSite) {
         this.webSite = webSite;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public Correspondent email(String email) {
+        this.email = email;
+        return this;
+    }
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public Port getPort() {
