@@ -33,17 +33,20 @@ public class CountryBean implements Serializable {
 
     private String dialCode;
 
+    private String timeZone;
+
     List<PortBean> portBeans;
 
     public CountryBean() {
         this.portBeans = new ArrayList<>();
     }
 
-    public void init(String countryName, String countryNameAbbr, String countryNameChinese, String dialCode) {
+    public void init(String countryName, String countryNameAbbr, String countryNameChinese, String dialCode, String timeZone) {
         this.countryName = countryName;
         this.countryNameAbbr = countryNameAbbr;
         this.countryNameChinese = countryNameChinese;
         this.dialCode = dialCode;
+        this.timeZone = timeZone;
     }
 
     public void addPortBean(PortBean portBean) {
@@ -72,6 +75,14 @@ public class CountryBean implements Serializable {
 
     public void setCountryNameChinese(String countryNameChinese) {
         this.countryNameChinese = countryNameChinese;
+    }
+
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 
     public String getDialCode() {

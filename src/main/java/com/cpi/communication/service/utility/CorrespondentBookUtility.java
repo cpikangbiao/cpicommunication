@@ -116,7 +116,8 @@ public class CorrespondentBookUtility {
                 country.getCountryName(),
                 country.getCountryNameAbbr(),
                 country.getCountryNameChinese(),
-                country.getDialCode()
+                country.getDialCode(),
+                country.getTimeZone()
             );
 
             List<Port> ports = portRepository.findAllByCountryOrderByPortName(country);
