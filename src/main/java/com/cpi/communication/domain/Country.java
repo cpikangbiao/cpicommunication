@@ -1,5 +1,4 @@
 package com.cpi.communication.domain;
-
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -7,7 +6,6 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * A Country.
@@ -121,19 +119,15 @@ public class Country implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Country)) {
             return false;
         }
-        Country country = (Country) o;
-        if (country.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), country.getId());
+        return id != null && id.equals(((Country) o).id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return 31;
     }
 
     @Override

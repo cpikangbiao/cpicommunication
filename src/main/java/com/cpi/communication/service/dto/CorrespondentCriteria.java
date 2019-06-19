@@ -1,6 +1,8 @@
 package com.cpi.communication.service.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
+import io.github.jhipster.service.Criteria;
 import io.github.jhipster.service.filter.BooleanFilter;
 import io.github.jhipster.service.filter.DoubleFilter;
 import io.github.jhipster.service.filter.Filter;
@@ -9,22 +11,18 @@ import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
 
-
-
-
-
-
 /**
- * Criteria class for the Correspondent entity. This class is used in CorrespondentResource to
- * receive all the possible filtering options from the Http GET request parameters.
- * For example the following could be a valid requests:
- * <code> /correspondents?id.greaterThan=5&amp;attr1.contains=something&amp;attr2.specified=false</code>
+ * Criteria class for the {@link com.cpi.communication.domain.Correspondent} entity. This class is used
+ * in {@link com.cpi.communication.web.rest.CorrespondentResource} to receive all the possible filtering options from
+ * the Http GET request parameters.
+ * For example the following could be a valid request:
+ * {@code /correspondents?id.greaterThan=5&attr1.contains=something&attr2.specified=false}
  * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use
  * fix type specific filters.
  */
-public class CorrespondentCriteria implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class CorrespondentCriteria implements Serializable, Criteria {
 
+    private static final long serialVersionUID = 1L;
 
     private LongFilter id;
 
@@ -42,7 +40,23 @@ public class CorrespondentCriteria implements Serializable {
 
     private LongFilter portId;
 
-    public CorrespondentCriteria() {
+    public CorrespondentCriteria(){
+    }
+
+    public CorrespondentCriteria(CorrespondentCriteria other){
+        this.id = other.id == null ? null : other.id.copy();
+        this.correspondentName = other.correspondentName == null ? null : other.correspondentName.copy();
+        this.faxNumber = other.faxNumber == null ? null : other.faxNumber.copy();
+        this.address = other.address == null ? null : other.address.copy();
+        this.telephoneOffice = other.telephoneOffice == null ? null : other.telephoneOffice.copy();
+        this.telephoneAlternate = other.telephoneAlternate == null ? null : other.telephoneAlternate.copy();
+        this.webSite = other.webSite == null ? null : other.webSite.copy();
+        this.portId = other.portId == null ? null : other.portId.copy();
+    }
+
+    @Override
+    public CorrespondentCriteria copy() {
+        return new CorrespondentCriteria(this);
     }
 
     public LongFilter getId() {
@@ -107,6 +121,41 @@ public class CorrespondentCriteria implements Serializable {
 
     public void setPortId(LongFilter portId) {
         this.portId = portId;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final CorrespondentCriteria that = (CorrespondentCriteria) o;
+        return
+            Objects.equals(id, that.id) &&
+            Objects.equals(correspondentName, that.correspondentName) &&
+            Objects.equals(faxNumber, that.faxNumber) &&
+            Objects.equals(address, that.address) &&
+            Objects.equals(telephoneOffice, that.telephoneOffice) &&
+            Objects.equals(telephoneAlternate, that.telephoneAlternate) &&
+            Objects.equals(webSite, that.webSite) &&
+            Objects.equals(portId, that.portId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+        id,
+        correspondentName,
+        faxNumber,
+        address,
+        telephoneOffice,
+        telephoneAlternate,
+        webSite,
+        portId
+        );
     }
 
     @Override

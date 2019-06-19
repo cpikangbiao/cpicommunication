@@ -10,7 +10,7 @@
  */
 package com.cpi.communication.repository.jasperreport;
 
-import com.codahale.metrics.annotation.Timed;
+
 import com.cpi.communication.client.AuthorizedFeignClient;
 import com.cpi.communication.config.LongTimeFeignConfiguration;
 import org.springframework.http.ResponseEntity;
@@ -46,7 +46,7 @@ public interface JasperReportUtility {
                                        @RequestBody Map<String, Object> parameters);
 
     @PostMapping("/api/test/addimage")
-    @Timed
+
     Map<String, Object> addImageMapParamete(@RequestParam(value = "path", required = true) String path,
                                             @RequestParam(value = "imageFileName", required = true) String imageFileName,
                                             @RequestParam(value = "imageParameterName", required = true) String imageParameterName);

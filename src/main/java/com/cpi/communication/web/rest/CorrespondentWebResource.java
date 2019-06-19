@@ -1,6 +1,6 @@
 package com.cpi.communication.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
+
 import com.cpi.communication.domain.Correspondent;
 import com.cpi.communication.repository.PortRepository;
 import com.cpi.communication.service.CorrespondentListService;
@@ -45,7 +45,6 @@ public class CorrespondentWebResource {
     private CorrespondentListService correspondentListService;
 
     @GetMapping("/country/list")
-    @Timed
     public ResponseEntity<List<CountryListBean>> getWebCountryList() {
         log.debug("REST request to getWebCountryList " );
 
@@ -53,7 +52,6 @@ public class CorrespondentWebResource {
     }
 
     @GetMapping("/port/{countryId}/list")
-    @Timed
     public ResponseEntity<List<PortListBean>> getWebPortList(@PathVariable("countryId") Long countryId) {
         log.debug("REST request to getWebCountryList " );
 
@@ -61,7 +59,6 @@ public class CorrespondentWebResource {
     }
 
     @GetMapping("/correspondent/{portId}/list")
-    @Timed
     public ResponseEntity<List<CorrespondentBean>> getWebCorrespondentList(@PathVariable("portId") Long portId) {
         log.debug("REST request to getWebCountryList " );
 

@@ -13,10 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.Optional;
+
 /**
- * Service Implementation for managing Correspondent.
+ * Service Implementation for managing {@link Correspondent}.
  */
 @Service
 @Transactional
@@ -36,8 +36,8 @@ public class CorrespondentServiceImpl implements CorrespondentService {
     /**
      * Save a correspondent.
      *
-     * @param correspondentDTO the entity to save
-     * @return the persisted entity
+     * @param correspondentDTO the entity to save.
+     * @return the persisted entity.
      */
     @Override
     public CorrespondentDTO save(CorrespondentDTO correspondentDTO) {
@@ -50,8 +50,8 @@ public class CorrespondentServiceImpl implements CorrespondentService {
     /**
      * Get all the correspondents.
      *
-     * @param pageable the pagination information
-     * @return the list of entities
+     * @param pageable the pagination information.
+     * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
@@ -65,8 +65,8 @@ public class CorrespondentServiceImpl implements CorrespondentService {
     /**
      * Get one correspondent by id.
      *
-     * @param id the id of the entity
-     * @return the entity
+     * @param id the id of the entity.
+     * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
@@ -79,7 +79,7 @@ public class CorrespondentServiceImpl implements CorrespondentService {
     /**
      * Delete the correspondent by id.
      *
-     * @param id the id of the entity
+     * @param id the id of the entity.
      */
     @Override
     public void delete(Long id) {

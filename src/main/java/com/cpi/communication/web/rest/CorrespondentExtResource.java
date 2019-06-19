@@ -1,14 +1,13 @@
 package com.cpi.communication.web.rest;
 
-import com.codahale.metrics.annotation.Timed;
+
 import com.cpi.communication.service.CorrespondentQueryService;
 import com.cpi.communication.service.CorrespondentService;
 import com.cpi.communication.service.dto.CorrespondentCriteria;
 import com.cpi.communication.service.dto.CorrespondentDTO;
 import com.cpi.communication.service.utility.CorrespondentBookUtility;
 import com.cpi.communication.web.rest.errors.BadRequestAlertException;
-import com.cpi.communication.web.rest.util.HeaderUtil;
-import com.cpi.communication.web.rest.util.PaginationUtil;
+
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +44,6 @@ public class CorrespondentExtResource {
     }
 
     @GetMapping("/correspondents/book/pdf")
-    @Timed
     public ResponseEntity<byte[]> createCorrespondentBookPDF() {
         log.debug("REST request to get createCorrespondentBook " );
         byte[] bytes = correspondentBookUtility.createCorrespondentBookPDF();
@@ -64,7 +62,6 @@ public class CorrespondentExtResource {
     }
 
     @GetMapping("/correspondents/book/excel")
-    @Timed
     public ResponseEntity<byte[]> createCorrespondentBookExcel() {
         log.debug("REST request to get createCorrespondentBook " );
         byte[] bytes = correspondentBookUtility.createCorrespondentBookExcel();
@@ -83,7 +80,6 @@ public class CorrespondentExtResource {
     }
 
     @GetMapping("/correspondents/book/word")
-    @Timed
     public ResponseEntity<byte[]> createCorrespondentBookWord() {
         log.debug("REST request to get createCorrespondentBook " );
         byte[] bytes = correspondentBookUtility.createCorrespondentBookWord();

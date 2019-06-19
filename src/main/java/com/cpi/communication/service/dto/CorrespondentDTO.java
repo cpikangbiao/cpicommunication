@@ -1,11 +1,10 @@
 package com.cpi.communication.service.dto;
-
 import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A DTO for the Correspondent entity.
+ * A DTO for the {@link com.cpi.communication.domain.Correspondent} entity.
  */
 public class CorrespondentDTO implements Serializable {
 

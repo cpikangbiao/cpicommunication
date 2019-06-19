@@ -13,10 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.Optional;
+
 /**
- * Service Implementation for managing Country.
+ * Service Implementation for managing {@link Country}.
  */
 @Service
 @Transactional
@@ -36,8 +36,8 @@ public class CountryServiceImpl implements CountryService {
     /**
      * Save a country.
      *
-     * @param countryDTO the entity to save
-     * @return the persisted entity
+     * @param countryDTO the entity to save.
+     * @return the persisted entity.
      */
     @Override
     public CountryDTO save(CountryDTO countryDTO) {
@@ -50,8 +50,8 @@ public class CountryServiceImpl implements CountryService {
     /**
      * Get all the countries.
      *
-     * @param pageable the pagination information
-     * @return the list of entities
+     * @param pageable the pagination information.
+     * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
@@ -65,8 +65,8 @@ public class CountryServiceImpl implements CountryService {
     /**
      * Get one country by id.
      *
-     * @param id the id of the entity
-     * @return the entity
+     * @param id the id of the entity.
+     * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
@@ -79,7 +79,7 @@ public class CountryServiceImpl implements CountryService {
     /**
      * Delete the country by id.
      *
-     * @param id the id of the entity
+     * @param id the id of the entity.
      */
     @Override
     public void delete(Long id) {

@@ -2,6 +2,8 @@ package com.cpi.communication.service;
 
 import java.util.List;
 
+import javax.persistence.criteria.JoinType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -16,12 +18,11 @@ import com.cpi.communication.domain.CorrespondentContact;
 import com.cpi.communication.domain.*; // for static metamodels
 import com.cpi.communication.repository.CorrespondentContactRepository;
 import com.cpi.communication.service.dto.CorrespondentContactCriteria;
-
 import com.cpi.communication.service.dto.CorrespondentContactDTO;
 import com.cpi.communication.service.mapper.CorrespondentContactMapper;
 
 /**
- * Service for executing complex queries for CorrespondentContact entities in the database.
+ * Service for executing complex queries for {@link CorrespondentContact} entities in the database.
  * The main input is a {@link CorrespondentContactCriteria} which gets converted to {@link Specification},
  * in a way that all the filters must apply.
  * It returns a {@link List} of {@link CorrespondentContactDTO} or a {@link Page} of {@link CorrespondentContactDTO} which fulfills the criteria.
@@ -42,7 +43,7 @@ public class CorrespondentContactQueryService extends QueryService<Correspondent
     }
 
     /**
-     * Return a {@link List} of {@link CorrespondentContactDTO} which matches the criteria from the database
+     * Return a {@link List} of {@link CorrespondentContactDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
@@ -54,7 +55,7 @@ public class CorrespondentContactQueryService extends QueryService<Correspondent
     }
 
     /**
-     * Return a {@link Page} of {@link CorrespondentContactDTO} which matches the criteria from the database
+     * Return a {@link Page} of {@link CorrespondentContactDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
@@ -68,7 +69,19 @@ public class CorrespondentContactQueryService extends QueryService<Correspondent
     }
 
     /**
-     * Function to convert CorrespondentContactCriteria to a {@link Specification}
+     * Return the number of matching entities in the database.
+     * @param criteria The object which holds all the filters, which the entities should match.
+     * @return the number of matching entities.
+     */
+    @Transactional(readOnly = true)
+    public long countByCriteria(CorrespondentContactCriteria criteria) {
+        log.debug("count by criteria : {}", criteria);
+        final Specification<CorrespondentContact> specification = createSpecification(criteria);
+        return correspondentContactRepository.count(specification);
+    }
+
+    /**
+     * Function to convert CorrespondentContactCriteria to a {@link Specification}.
      */
     private Specification<CorrespondentContact> createSpecification(CorrespondentContactCriteria criteria) {
         Specification<CorrespondentContact> specification = Specification.where(null);
@@ -92,10 +105,10 @@ public class CorrespondentContactQueryService extends QueryService<Correspondent
                 specification = specification.and(buildStringSpecification(criteria.getWebSite(), CorrespondentContact_.webSite));
             }
             if (criteria.getCorrespondentId() != null) {
-                specification = specification.and(buildReferringEntitySpecification(criteria.getCorrespondentId(), CorrespondentContact_.correspondent, Correspondent_.id));
+                specification = specification.and(buildSpecification(criteria.getCorrespondentId(),
+                    root -> root.join(CorrespondentContact_.correspondent, JoinType.LEFT).get(Correspondent_.id)));
             }
         }
         return specification;
     }
-
 }

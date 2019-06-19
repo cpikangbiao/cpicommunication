@@ -13,10 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.Optional;
+
 /**
- * Service Implementation for managing Port.
+ * Service Implementation for managing {@link Port}.
  */
 @Service
 @Transactional
@@ -36,8 +36,8 @@ public class PortServiceImpl implements PortService {
     /**
      * Save a port.
      *
-     * @param portDTO the entity to save
-     * @return the persisted entity
+     * @param portDTO the entity to save.
+     * @return the persisted entity.
      */
     @Override
     public PortDTO save(PortDTO portDTO) {
@@ -50,8 +50,8 @@ public class PortServiceImpl implements PortService {
     /**
      * Get all the ports.
      *
-     * @param pageable the pagination information
-     * @return the list of entities
+     * @param pageable the pagination information.
+     * @return the list of entities.
      */
     @Override
     @Transactional(readOnly = true)
@@ -65,8 +65,8 @@ public class PortServiceImpl implements PortService {
     /**
      * Get one port by id.
      *
-     * @param id the id of the entity
-     * @return the entity
+     * @param id the id of the entity.
+     * @return the entity.
      */
     @Override
     @Transactional(readOnly = true)
@@ -79,7 +79,7 @@ public class PortServiceImpl implements PortService {
     /**
      * Delete the port by id.
      *
-     * @param id the id of the entity
+     * @param id the id of the entity.
      */
     @Override
     public void delete(Long id) {

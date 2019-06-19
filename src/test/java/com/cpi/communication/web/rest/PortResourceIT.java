@@ -1,9 +1,7 @@
 package com.cpi.communication.web.rest;
 
 import com.cpi.communication.CpicommunicationApp;
-
 import com.cpi.communication.config.SecurityBeanOverrideConfiguration;
-
 import com.cpi.communication.domain.Port;
 import com.cpi.communication.domain.Country;
 import com.cpi.communication.repository.PortRepository;
@@ -14,23 +12,22 @@ import com.cpi.communication.web.rest.errors.ExceptionTranslator;
 import com.cpi.communication.service.dto.PortCriteria;
 import com.cpi.communication.service.PortQueryService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-
 
 import static com.cpi.communication.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,13 +36,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for the PortResource REST controller.
- *
- * @see PortResource
+ * Integration tests for the {@Link PortResource} REST controller.
  */
-@RunWith(SpringRunner.class)
+@EmbeddedKafka
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, CpicommunicationApp.class})
-public class PortResourceIntTest {
+public class PortResourceIT {
 
     private static final String DEFAULT_PORT_CODE = "AAAAAAAAAA";
     private static final String UPDATED_PORT_CODE = "BBBBBBBBBB";
@@ -59,10 +54,8 @@ public class PortResourceIntTest {
     @Autowired
     private PortRepository portRepository;
 
-
     @Autowired
     private PortMapper portMapper;
-    
 
     @Autowired
     private PortService portService;
@@ -82,11 +75,14 @@ public class PortResourceIntTest {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private Validator validator;
+
     private MockMvc restPortMockMvc;
 
     private Port port;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         final PortResource portResource = new PortResource(portService, portQueryService);
@@ -94,7 +90,8 @@ public class PortResourceIntTest {
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build();
     }
 
     /**
@@ -110,8 +107,21 @@ public class PortResourceIntTest {
             .portNameChinese(DEFAULT_PORT_NAME_CHINESE);
         return port;
     }
+    /**
+     * Create an updated entity for this test.
+     *
+     * This is a static method, as tests for other entities might also need it,
+     * if they test an entity which requires the current entity.
+     */
+    public static Port createUpdatedEntity(EntityManager em) {
+        Port port = new Port()
+            .portCode(UPDATED_PORT_CODE)
+            .portName(UPDATED_PORT_NAME)
+            .portNameChinese(UPDATED_PORT_NAME_CHINESE);
+        return port;
+    }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         port = createEntity(em);
     }
@@ -157,6 +167,7 @@ public class PortResourceIntTest {
         assertThat(portList).hasSize(databaseSizeBeforeCreate);
     }
 
+
     @Test
     @Transactional
     public void getAllPorts() throws Exception {
@@ -173,7 +184,6 @@ public class PortResourceIntTest {
             .andExpect(jsonPath("$.[*].portNameChinese").value(hasItem(DEFAULT_PORT_NAME_CHINESE.toString())));
     }
     
-
     @Test
     @Transactional
     public void getPort() throws Exception {
@@ -311,7 +321,7 @@ public class PortResourceIntTest {
     @Transactional
     public void getAllPortsByCountryIsEqualToSomething() throws Exception {
         // Initialize the database
-        Country country = CountryResourceIntTest.createEntity(em);
+        Country country = CountryResourceIT.createEntity(em);
         em.persist(country);
         em.flush();
         port.setCountry(country);
@@ -326,20 +336,26 @@ public class PortResourceIntTest {
     }
 
     /**
-     * Executes the search, and checks that the default entity is returned
+     * Executes the search, and checks that the default entity is returned.
      */
     private void defaultPortShouldBeFound(String filter) throws Exception {
         restPortMockMvc.perform(get("/api/ports?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(port.getId().intValue())))
-            .andExpect(jsonPath("$.[*].portCode").value(hasItem(DEFAULT_PORT_CODE.toString())))
-            .andExpect(jsonPath("$.[*].portName").value(hasItem(DEFAULT_PORT_NAME.toString())))
-            .andExpect(jsonPath("$.[*].portNameChinese").value(hasItem(DEFAULT_PORT_NAME_CHINESE.toString())));
+            .andExpect(jsonPath("$.[*].portCode").value(hasItem(DEFAULT_PORT_CODE)))
+            .andExpect(jsonPath("$.[*].portName").value(hasItem(DEFAULT_PORT_NAME)))
+            .andExpect(jsonPath("$.[*].portNameChinese").value(hasItem(DEFAULT_PORT_NAME_CHINESE)));
+
+        // Check, that the count call also returns 1
+        restPortMockMvc.perform(get("/api/ports/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
     }
 
     /**
-     * Executes the search, and checks that the default entity is not returned
+     * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultPortShouldNotBeFound(String filter) throws Exception {
         restPortMockMvc.perform(get("/api/ports?sort=id,desc&" + filter))
@@ -347,7 +363,14 @@ public class PortResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restPortMockMvc.perform(get("/api/ports/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
     }
+
 
     @Test
     @Transactional
@@ -397,7 +420,7 @@ public class PortResourceIntTest {
         // Create the Port
         PortDTO portDTO = portMapper.toDto(port);
 
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException 
+        // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restPortMockMvc.perform(put("/api/ports")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
             .content(TestUtil.convertObjectToJsonBytes(portDTO)))
@@ -416,10 +439,10 @@ public class PortResourceIntTest {
 
         int databaseSizeBeforeDelete = portRepository.findAll().size();
 
-        // Get the port
+        // Delete the port
         restPortMockMvc.perform(delete("/api/ports/{id}", port.getId())
             .accept(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // Validate the database is empty
         List<Port> portList = portRepository.findAll();

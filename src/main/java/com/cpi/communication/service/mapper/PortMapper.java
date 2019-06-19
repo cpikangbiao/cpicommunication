@@ -6,7 +6,7 @@ import com.cpi.communication.service.dto.PortDTO;
 import org.mapstruct.*;
 
 /**
- * Mapper for the entity Port and its DTO PortDTO.
+ * Mapper for the entity {@link Port} and its DTO {@link PortDTO}.
  */
 @Mapper(componentModel = "spring", uses = {CountryMapper.class})
 public interface PortMapper extends EntityMapper<PortDTO, Port> {

@@ -1,10 +1,9 @@
 package com.cpi.communication.service.dto;
-
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A DTO for the Port entity.
+ * A DTO for the {@link com.cpi.communication.domain.Port} entity.
  */
 public class PortDTO implements Serializable {
 
@@ -15,6 +14,7 @@ public class PortDTO implements Serializable {
     private String portName;
 
     private String portNameChinese;
+
 
     private Long countryId;
 

@@ -1,6 +1,8 @@
 package com.cpi.communication.service.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
+import io.github.jhipster.service.Criteria;
 import io.github.jhipster.service.filter.BooleanFilter;
 import io.github.jhipster.service.filter.DoubleFilter;
 import io.github.jhipster.service.filter.Filter;
@@ -9,22 +11,18 @@ import io.github.jhipster.service.filter.IntegerFilter;
 import io.github.jhipster.service.filter.LongFilter;
 import io.github.jhipster.service.filter.StringFilter;
 
-
-
-
-
-
 /**
- * Criteria class for the Port entity. This class is used in PortResource to
- * receive all the possible filtering options from the Http GET request parameters.
- * For example the following could be a valid requests:
- * <code> /ports?id.greaterThan=5&amp;attr1.contains=something&amp;attr2.specified=false</code>
+ * Criteria class for the {@link com.cpi.communication.domain.Port} entity. This class is used
+ * in {@link com.cpi.communication.web.rest.PortResource} to receive all the possible filtering options from
+ * the Http GET request parameters.
+ * For example the following could be a valid request:
+ * {@code /ports?id.greaterThan=5&attr1.contains=something&attr2.specified=false}
  * As Spring is unable to properly convert the types, unless specific {@link Filter} class are used, we need to use
  * fix type specific filters.
  */
-public class PortCriteria implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class PortCriteria implements Serializable, Criteria {
 
+    private static final long serialVersionUID = 1L;
 
     private LongFilter id;
 
@@ -36,7 +34,20 @@ public class PortCriteria implements Serializable {
 
     private LongFilter countryId;
 
-    public PortCriteria() {
+    public PortCriteria(){
+    }
+
+    public PortCriteria(PortCriteria other){
+        this.id = other.id == null ? null : other.id.copy();
+        this.portCode = other.portCode == null ? null : other.portCode.copy();
+        this.portName = other.portName == null ? null : other.portName.copy();
+        this.portNameChinese = other.portNameChinese == null ? null : other.portNameChinese.copy();
+        this.countryId = other.countryId == null ? null : other.countryId.copy();
+    }
+
+    @Override
+    public PortCriteria copy() {
+        return new PortCriteria(this);
     }
 
     public LongFilter getId() {
@@ -77,6 +88,35 @@ public class PortCriteria implements Serializable {
 
     public void setCountryId(LongFilter countryId) {
         this.countryId = countryId;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final PortCriteria that = (PortCriteria) o;
+        return
+            Objects.equals(id, that.id) &&
+            Objects.equals(portCode, that.portCode) &&
+            Objects.equals(portName, that.portName) &&
+            Objects.equals(portNameChinese, that.portNameChinese) &&
+            Objects.equals(countryId, that.countryId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+        id,
+        portCode,
+        portName,
+        portNameChinese,
+        countryId
+        );
     }
 
     @Override
