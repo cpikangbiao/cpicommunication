@@ -2,6 +2,8 @@ package com.cpi.communication.service;
 
 import java.util.List;
 
+import javax.persistence.criteria.JoinType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -16,12 +18,11 @@ import com.cpi.communication.domain.Port;
 import com.cpi.communication.domain.*; // for static metamodels
 import com.cpi.communication.repository.PortRepository;
 import com.cpi.communication.service.dto.PortCriteria;
-
 import com.cpi.communication.service.dto.PortDTO;
 import com.cpi.communication.service.mapper.PortMapper;
 
 /**
- * Service for executing complex queries for Port entities in the database.
+ * Service for executing complex queries for {@link Port} entities in the database.
  * The main input is a {@link PortCriteria} which gets converted to {@link Specification},
  * in a way that all the filters must apply.
  * It returns a {@link List} of {@link PortDTO} or a {@link Page} of {@link PortDTO} which fulfills the criteria.
@@ -42,7 +43,7 @@ public class PortQueryService extends QueryService<Port> {
     }
 
     /**
-     * Return a {@link List} of {@link PortDTO} which matches the criteria from the database
+     * Return a {@link List} of {@link PortDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
@@ -54,7 +55,7 @@ public class PortQueryService extends QueryService<Port> {
     }
 
     /**
-     * Return a {@link Page} of {@link PortDTO} which matches the criteria from the database
+     * Return a {@link Page} of {@link PortDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
@@ -68,7 +69,19 @@ public class PortQueryService extends QueryService<Port> {
     }
 
     /**
-     * Function to convert PortCriteria to a {@link Specification}
+     * Return the number of matching entities in the database.
+     * @param criteria The object which holds all the filters, which the entities should match.
+     * @return the number of matching entities.
+     */
+    @Transactional(readOnly = true)
+    public long countByCriteria(PortCriteria criteria) {
+        log.debug("count by criteria : {}", criteria);
+        final Specification<Port> specification = createSpecification(criteria);
+        return portRepository.count(specification);
+    }
+
+    /**
+     * Function to convert PortCriteria to a {@link Specification}.
      */
     private Specification<Port> createSpecification(PortCriteria criteria) {
         Specification<Port> specification = Specification.where(null);
@@ -86,10 +99,10 @@ public class PortQueryService extends QueryService<Port> {
                 specification = specification.and(buildStringSpecification(criteria.getPortNameChinese(), Port_.portNameChinese));
             }
             if (criteria.getCountryId() != null) {
-                specification = specification.and(buildReferringEntitySpecification(criteria.getCountryId(), Port_.country, Country_.id));
+                specification = specification.and(buildSpecification(criteria.getCountryId(),
+                    root -> root.join(Port_.country, JoinType.LEFT).get(Country_.id)));
             }
         }
         return specification;
     }
-
 }

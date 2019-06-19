@@ -1,11 +1,10 @@
 package com.cpi.communication.service.dto;
-
 import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * A DTO for the Country entity.
+ * A DTO for the {@link com.cpi.communication.domain.Country} entity.
  */
 public class CountryDTO implements Serializable {
 
@@ -20,6 +19,7 @@ public class CountryDTO implements Serializable {
     private String countryNameChinese;
 
     private String dialCode;
+
 
     public Long getId() {
         return id;

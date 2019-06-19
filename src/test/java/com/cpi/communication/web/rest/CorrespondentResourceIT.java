@@ -1,9 +1,7 @@
 package com.cpi.communication.web.rest;
 
 import com.cpi.communication.CpicommunicationApp;
-
 import com.cpi.communication.config.SecurityBeanOverrideConfiguration;
-
 import com.cpi.communication.domain.Correspondent;
 import com.cpi.communication.domain.Port;
 import com.cpi.communication.repository.CorrespondentRepository;
@@ -14,23 +12,22 @@ import com.cpi.communication.web.rest.errors.ExceptionTranslator;
 import com.cpi.communication.service.dto.CorrespondentCriteria;
 import com.cpi.communication.service.CorrespondentQueryService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-
 
 import static com.cpi.communication.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,13 +36,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for the CorrespondentResource REST controller.
- *
- * @see CorrespondentResource
+ * Integration tests for the {@Link CorrespondentResource} REST controller.
  */
-@RunWith(SpringRunner.class)
+@EmbeddedKafka
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, CpicommunicationApp.class})
-public class CorrespondentResourceIntTest {
+public class CorrespondentResourceIT {
 
     private static final String DEFAULT_CORRESPONDENT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_CORRESPONDENT_NAME = "BBBBBBBBBB";
@@ -68,10 +63,8 @@ public class CorrespondentResourceIntTest {
     @Autowired
     private CorrespondentRepository correspondentRepository;
 
-
     @Autowired
     private CorrespondentMapper correspondentMapper;
-    
 
     @Autowired
     private CorrespondentService correspondentService;
@@ -91,11 +84,14 @@ public class CorrespondentResourceIntTest {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private Validator validator;
+
     private MockMvc restCorrespondentMockMvc;
 
     private Correspondent correspondent;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         final CorrespondentResource correspondentResource = new CorrespondentResource(correspondentService, correspondentQueryService);
@@ -103,7 +99,8 @@ public class CorrespondentResourceIntTest {
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build();
     }
 
     /**
@@ -122,8 +119,24 @@ public class CorrespondentResourceIntTest {
             .webSite(DEFAULT_WEB_SITE);
         return correspondent;
     }
+    /**
+     * Create an updated entity for this test.
+     *
+     * This is a static method, as tests for other entities might also need it,
+     * if they test an entity which requires the current entity.
+     */
+    public static Correspondent createUpdatedEntity(EntityManager em) {
+        Correspondent correspondent = new Correspondent()
+            .correspondentName(UPDATED_CORRESPONDENT_NAME)
+            .faxNumber(UPDATED_FAX_NUMBER)
+            .address(UPDATED_ADDRESS)
+            .telephoneOffice(UPDATED_TELEPHONE_OFFICE)
+            .telephoneAlternate(UPDATED_TELEPHONE_ALTERNATE)
+            .webSite(UPDATED_WEB_SITE);
+        return correspondent;
+    }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         correspondent = createEntity(em);
     }
@@ -171,6 +184,7 @@ public class CorrespondentResourceIntTest {
         List<Correspondent> correspondentList = correspondentRepository.findAll();
         assertThat(correspondentList).hasSize(databaseSizeBeforeCreate);
     }
+
 
     @Test
     @Transactional
@@ -229,7 +243,6 @@ public class CorrespondentResourceIntTest {
             .andExpect(jsonPath("$.[*].webSite").value(hasItem(DEFAULT_WEB_SITE.toString())));
     }
     
-
     @Test
     @Transactional
     public void getCorrespondent() throws Exception {
@@ -487,7 +500,7 @@ public class CorrespondentResourceIntTest {
     @Transactional
     public void getAllCorrespondentsByPortIsEqualToSomething() throws Exception {
         // Initialize the database
-        Port port = PortResourceIntTest.createEntity(em);
+        Port port = PortResourceIT.createEntity(em);
         em.persist(port);
         em.flush();
         correspondent.setPort(port);
@@ -502,23 +515,29 @@ public class CorrespondentResourceIntTest {
     }
 
     /**
-     * Executes the search, and checks that the default entity is returned
+     * Executes the search, and checks that the default entity is returned.
      */
     private void defaultCorrespondentShouldBeFound(String filter) throws Exception {
         restCorrespondentMockMvc.perform(get("/api/correspondents?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(correspondent.getId().intValue())))
-            .andExpect(jsonPath("$.[*].correspondentName").value(hasItem(DEFAULT_CORRESPONDENT_NAME.toString())))
-            .andExpect(jsonPath("$.[*].faxNumber").value(hasItem(DEFAULT_FAX_NUMBER.toString())))
-            .andExpect(jsonPath("$.[*].address").value(hasItem(DEFAULT_ADDRESS.toString())))
-            .andExpect(jsonPath("$.[*].telephoneOffice").value(hasItem(DEFAULT_TELEPHONE_OFFICE.toString())))
-            .andExpect(jsonPath("$.[*].telephoneAlternate").value(hasItem(DEFAULT_TELEPHONE_ALTERNATE.toString())))
-            .andExpect(jsonPath("$.[*].webSite").value(hasItem(DEFAULT_WEB_SITE.toString())));
+            .andExpect(jsonPath("$.[*].correspondentName").value(hasItem(DEFAULT_CORRESPONDENT_NAME)))
+            .andExpect(jsonPath("$.[*].faxNumber").value(hasItem(DEFAULT_FAX_NUMBER)))
+            .andExpect(jsonPath("$.[*].address").value(hasItem(DEFAULT_ADDRESS)))
+            .andExpect(jsonPath("$.[*].telephoneOffice").value(hasItem(DEFAULT_TELEPHONE_OFFICE)))
+            .andExpect(jsonPath("$.[*].telephoneAlternate").value(hasItem(DEFAULT_TELEPHONE_ALTERNATE)))
+            .andExpect(jsonPath("$.[*].webSite").value(hasItem(DEFAULT_WEB_SITE)));
+
+        // Check, that the count call also returns 1
+        restCorrespondentMockMvc.perform(get("/api/correspondents/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
     }
 
     /**
-     * Executes the search, and checks that the default entity is not returned
+     * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultCorrespondentShouldNotBeFound(String filter) throws Exception {
         restCorrespondentMockMvc.perform(get("/api/correspondents?sort=id,desc&" + filter))
@@ -526,7 +545,14 @@ public class CorrespondentResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restCorrespondentMockMvc.perform(get("/api/correspondents/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
     }
+
 
     @Test
     @Transactional
@@ -582,7 +608,7 @@ public class CorrespondentResourceIntTest {
         // Create the Correspondent
         CorrespondentDTO correspondentDTO = correspondentMapper.toDto(correspondent);
 
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException 
+        // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCorrespondentMockMvc.perform(put("/api/correspondents")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
             .content(TestUtil.convertObjectToJsonBytes(correspondentDTO)))
@@ -601,10 +627,10 @@ public class CorrespondentResourceIntTest {
 
         int databaseSizeBeforeDelete = correspondentRepository.findAll().size();
 
-        // Get the correspondent
+        // Delete the correspondent
         restCorrespondentMockMvc.perform(delete("/api/correspondents/{id}", correspondent.getId())
             .accept(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // Validate the database is empty
         List<Correspondent> correspondentList = correspondentRepository.findAll();

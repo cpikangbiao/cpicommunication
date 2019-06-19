@@ -8,23 +8,23 @@ import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 /**
- * Service Interface for managing Country.
+ * Service Interface for managing {@link com.cpi.communication.domain.Country}.
  */
 public interface CountryService {
 
     /**
      * Save a country.
      *
-     * @param countryDTO the entity to save
-     * @return the persisted entity
+     * @param countryDTO the entity to save.
+     * @return the persisted entity.
      */
     CountryDTO save(CountryDTO countryDTO);
 
     /**
      * Get all the countries.
      *
-     * @param pageable the pagination information
-     * @return the list of entities
+     * @param pageable the pagination information.
+     * @return the list of entities.
      */
     Page<CountryDTO> findAll(Pageable pageable);
 
@@ -32,15 +32,15 @@ public interface CountryService {
     /**
      * Get the "id" country.
      *
-     * @param id the id of the entity
-     * @return the entity
+     * @param id the id of the entity.
+     * @return the entity.
      */
     Optional<CountryDTO> findOne(Long id);
 
     /**
      * Delete the "id" country.
      *
-     * @param id the id of the entity
+     * @param id the id of the entity.
      */
     void delete(Long id);
 }

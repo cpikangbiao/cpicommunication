@@ -1,9 +1,7 @@
 package com.cpi.communication.web.rest;
 
 import com.cpi.communication.CpicommunicationApp;
-
 import com.cpi.communication.config.SecurityBeanOverrideConfiguration;
-
 import com.cpi.communication.domain.Country;
 import com.cpi.communication.repository.CountryRepository;
 import com.cpi.communication.service.CountryService;
@@ -13,23 +11,22 @@ import com.cpi.communication.web.rest.errors.ExceptionTranslator;
 import com.cpi.communication.service.dto.CountryCriteria;
 import com.cpi.communication.service.CountryQueryService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-
 
 import static com.cpi.communication.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,13 +35,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for the CountryResource REST controller.
- *
- * @see CountryResource
+ * Integration tests for the {@Link CountryResource} REST controller.
  */
-@RunWith(SpringRunner.class)
+@EmbeddedKafka
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, CpicommunicationApp.class})
-public class CountryResourceIntTest {
+public class CountryResourceIT {
 
     private static final String DEFAULT_COUNTRY_NAME = "AAAAAAAAAA";
     private static final String UPDATED_COUNTRY_NAME = "BBBBBBBBBB";
@@ -61,10 +56,8 @@ public class CountryResourceIntTest {
     @Autowired
     private CountryRepository countryRepository;
 
-
     @Autowired
     private CountryMapper countryMapper;
-    
 
     @Autowired
     private CountryService countryService;
@@ -84,11 +77,14 @@ public class CountryResourceIntTest {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private Validator validator;
+
     private MockMvc restCountryMockMvc;
 
     private Country country;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         final CountryResource countryResource = new CountryResource(countryService, countryQueryService);
@@ -96,7 +92,8 @@ public class CountryResourceIntTest {
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build();
     }
 
     /**
@@ -113,8 +110,22 @@ public class CountryResourceIntTest {
             .dialCode(DEFAULT_DIAL_CODE);
         return country;
     }
+    /**
+     * Create an updated entity for this test.
+     *
+     * This is a static method, as tests for other entities might also need it,
+     * if they test an entity which requires the current entity.
+     */
+    public static Country createUpdatedEntity(EntityManager em) {
+        Country country = new Country()
+            .countryName(UPDATED_COUNTRY_NAME)
+            .countryNameAbbr(UPDATED_COUNTRY_NAME_ABBR)
+            .countryNameChinese(UPDATED_COUNTRY_NAME_CHINESE)
+            .dialCode(UPDATED_DIAL_CODE);
+        return country;
+    }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         country = createEntity(em);
     }
@@ -160,6 +171,7 @@ public class CountryResourceIntTest {
         List<Country> countryList = countryRepository.findAll();
         assertThat(countryList).hasSize(databaseSizeBeforeCreate);
     }
+
 
     @Test
     @Transactional
@@ -216,7 +228,6 @@ public class CountryResourceIntTest {
             .andExpect(jsonPath("$.[*].dialCode").value(hasItem(DEFAULT_DIAL_CODE.toString())));
     }
     
-
     @Test
     @Transactional
     public void getCountry() throws Exception {
@@ -390,21 +401,27 @@ public class CountryResourceIntTest {
         defaultCountryShouldNotBeFound("dialCode.specified=false");
     }
     /**
-     * Executes the search, and checks that the default entity is returned
+     * Executes the search, and checks that the default entity is returned.
      */
     private void defaultCountryShouldBeFound(String filter) throws Exception {
         restCountryMockMvc.perform(get("/api/countries?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(country.getId().intValue())))
-            .andExpect(jsonPath("$.[*].countryName").value(hasItem(DEFAULT_COUNTRY_NAME.toString())))
-            .andExpect(jsonPath("$.[*].countryNameAbbr").value(hasItem(DEFAULT_COUNTRY_NAME_ABBR.toString())))
-            .andExpect(jsonPath("$.[*].countryNameChinese").value(hasItem(DEFAULT_COUNTRY_NAME_CHINESE.toString())))
-            .andExpect(jsonPath("$.[*].dialCode").value(hasItem(DEFAULT_DIAL_CODE.toString())));
+            .andExpect(jsonPath("$.[*].countryName").value(hasItem(DEFAULT_COUNTRY_NAME)))
+            .andExpect(jsonPath("$.[*].countryNameAbbr").value(hasItem(DEFAULT_COUNTRY_NAME_ABBR)))
+            .andExpect(jsonPath("$.[*].countryNameChinese").value(hasItem(DEFAULT_COUNTRY_NAME_CHINESE)))
+            .andExpect(jsonPath("$.[*].dialCode").value(hasItem(DEFAULT_DIAL_CODE)));
+
+        // Check, that the count call also returns 1
+        restCountryMockMvc.perform(get("/api/countries/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
     }
 
     /**
-     * Executes the search, and checks that the default entity is not returned
+     * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultCountryShouldNotBeFound(String filter) throws Exception {
         restCountryMockMvc.perform(get("/api/countries?sort=id,desc&" + filter))
@@ -412,7 +429,14 @@ public class CountryResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restCountryMockMvc.perform(get("/api/countries/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
     }
+
 
     @Test
     @Transactional
@@ -464,7 +488,7 @@ public class CountryResourceIntTest {
         // Create the Country
         CountryDTO countryDTO = countryMapper.toDto(country);
 
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException 
+        // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCountryMockMvc.perform(put("/api/countries")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
             .content(TestUtil.convertObjectToJsonBytes(countryDTO)))
@@ -483,10 +507,10 @@ public class CountryResourceIntTest {
 
         int databaseSizeBeforeDelete = countryRepository.findAll().size();
 
-        // Get the country
+        // Delete the country
         restCountryMockMvc.perform(delete("/api/countries/{id}", country.getId())
             .accept(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // Validate the database is empty
         List<Country> countryList = countryRepository.findAll();

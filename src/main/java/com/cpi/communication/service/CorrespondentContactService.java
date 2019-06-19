@@ -8,23 +8,23 @@ import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 /**
- * Service Interface for managing CorrespondentContact.
+ * Service Interface for managing {@link com.cpi.communication.domain.CorrespondentContact}.
  */
 public interface CorrespondentContactService {
 
     /**
      * Save a correspondentContact.
      *
-     * @param correspondentContactDTO the entity to save
-     * @return the persisted entity
+     * @param correspondentContactDTO the entity to save.
+     * @return the persisted entity.
      */
     CorrespondentContactDTO save(CorrespondentContactDTO correspondentContactDTO);
 
     /**
      * Get all the correspondentContacts.
      *
-     * @param pageable the pagination information
-     * @return the list of entities
+     * @param pageable the pagination information.
+     * @return the list of entities.
      */
     Page<CorrespondentContactDTO> findAll(Pageable pageable);
 
@@ -32,15 +32,15 @@ public interface CorrespondentContactService {
     /**
      * Get the "id" correspondentContact.
      *
-     * @param id the id of the entity
-     * @return the entity
+     * @param id the id of the entity.
+     * @return the entity.
      */
     Optional<CorrespondentContactDTO> findOne(Long id);
 
     /**
      * Delete the "id" correspondentContact.
      *
-     * @param id the id of the entity
+     * @param id the id of the entity.
      */
     void delete(Long id);
 }

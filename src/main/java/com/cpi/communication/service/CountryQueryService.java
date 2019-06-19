@@ -2,6 +2,8 @@ package com.cpi.communication.service;
 
 import java.util.List;
 
+import javax.persistence.criteria.JoinType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -16,12 +18,11 @@ import com.cpi.communication.domain.Country;
 import com.cpi.communication.domain.*; // for static metamodels
 import com.cpi.communication.repository.CountryRepository;
 import com.cpi.communication.service.dto.CountryCriteria;
-
 import com.cpi.communication.service.dto.CountryDTO;
 import com.cpi.communication.service.mapper.CountryMapper;
 
 /**
- * Service for executing complex queries for Country entities in the database.
+ * Service for executing complex queries for {@link Country} entities in the database.
  * The main input is a {@link CountryCriteria} which gets converted to {@link Specification},
  * in a way that all the filters must apply.
  * It returns a {@link List} of {@link CountryDTO} or a {@link Page} of {@link CountryDTO} which fulfills the criteria.
@@ -42,7 +43,7 @@ public class CountryQueryService extends QueryService<Country> {
     }
 
     /**
-     * Return a {@link List} of {@link CountryDTO} which matches the criteria from the database
+     * Return a {@link List} of {@link CountryDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching entities.
      */
@@ -54,7 +55,7 @@ public class CountryQueryService extends QueryService<Country> {
     }
 
     /**
-     * Return a {@link Page} of {@link CountryDTO} which matches the criteria from the database
+     * Return a {@link Page} of {@link CountryDTO} which matches the criteria from the database.
      * @param criteria The object which holds all the filters, which the entities should match.
      * @param page The page, which should be returned.
      * @return the matching entities.
@@ -68,7 +69,19 @@ public class CountryQueryService extends QueryService<Country> {
     }
 
     /**
-     * Function to convert CountryCriteria to a {@link Specification}
+     * Return the number of matching entities in the database.
+     * @param criteria The object which holds all the filters, which the entities should match.
+     * @return the number of matching entities.
+     */
+    @Transactional(readOnly = true)
+    public long countByCriteria(CountryCriteria criteria) {
+        log.debug("count by criteria : {}", criteria);
+        final Specification<Country> specification = createSpecification(criteria);
+        return countryRepository.count(specification);
+    }
+
+    /**
+     * Function to convert CountryCriteria to a {@link Specification}.
      */
     private Specification<Country> createSpecification(CountryCriteria criteria) {
         Specification<Country> specification = Specification.where(null);
@@ -91,5 +104,4 @@ public class CountryQueryService extends QueryService<Country> {
         }
         return specification;
     }
-
 }

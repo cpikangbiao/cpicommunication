@@ -8,23 +8,23 @@ import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 /**
- * Service Interface for managing Port.
+ * Service Interface for managing {@link com.cpi.communication.domain.Port}.
  */
 public interface PortService {
 
     /**
      * Save a port.
      *
-     * @param portDTO the entity to save
-     * @return the persisted entity
+     * @param portDTO the entity to save.
+     * @return the persisted entity.
      */
     PortDTO save(PortDTO portDTO);
 
     /**
      * Get all the ports.
      *
-     * @param pageable the pagination information
-     * @return the list of entities
+     * @param pageable the pagination information.
+     * @return the list of entities.
      */
     Page<PortDTO> findAll(Pageable pageable);
 
@@ -32,15 +32,15 @@ public interface PortService {
     /**
      * Get the "id" port.
      *
-     * @param id the id of the entity
-     * @return the entity
+     * @param id the id of the entity.
+     * @return the entity.
      */
     Optional<PortDTO> findOne(Long id);
 
     /**
      * Delete the "id" port.
      *
-     * @param id the id of the entity
+     * @param id the id of the entity.
      */
     void delete(Long id);
 }

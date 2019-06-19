@@ -1,9 +1,7 @@
 package com.cpi.communication.web.rest;
 
 import com.cpi.communication.CpicommunicationApp;
-
 import com.cpi.communication.config.SecurityBeanOverrideConfiguration;
-
 import com.cpi.communication.domain.CorrespondentContact;
 import com.cpi.communication.domain.Correspondent;
 import com.cpi.communication.repository.CorrespondentContactRepository;
@@ -14,23 +12,22 @@ import com.cpi.communication.web.rest.errors.ExceptionTranslator;
 import com.cpi.communication.service.dto.CorrespondentContactCriteria;
 import com.cpi.communication.service.CorrespondentContactQueryService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-
 
 import static com.cpi.communication.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,13 +36,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for the CorrespondentContactResource REST controller.
- *
- * @see CorrespondentContactResource
+ * Integration tests for the {@Link CorrespondentContactResource} REST controller.
  */
-@RunWith(SpringRunner.class)
+@EmbeddedKafka
 @SpringBootTest(classes = {SecurityBeanOverrideConfiguration.class, CpicommunicationApp.class})
-public class CorrespondentContactResourceIntTest {
+public class CorrespondentContactResourceIT {
 
     private static final String DEFAULT_CORRESPONDENT_CONTACT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_CORRESPONDENT_CONTACT_NAME = "BBBBBBBBBB";
@@ -65,10 +60,8 @@ public class CorrespondentContactResourceIntTest {
     @Autowired
     private CorrespondentContactRepository correspondentContactRepository;
 
-
     @Autowired
     private CorrespondentContactMapper correspondentContactMapper;
-    
 
     @Autowired
     private CorrespondentContactService correspondentContactService;
@@ -88,11 +81,14 @@ public class CorrespondentContactResourceIntTest {
     @Autowired
     private EntityManager em;
 
+    @Autowired
+    private Validator validator;
+
     private MockMvc restCorrespondentContactMockMvc;
 
     private CorrespondentContact correspondentContact;
 
-    @Before
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         final CorrespondentContactResource correspondentContactResource = new CorrespondentContactResource(correspondentContactService, correspondentContactQueryService);
@@ -100,7 +96,8 @@ public class CorrespondentContactResourceIntTest {
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
             .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
+            .setMessageConverters(jacksonMessageConverter)
+            .setValidator(validator).build();
     }
 
     /**
@@ -118,8 +115,23 @@ public class CorrespondentContactResourceIntTest {
             .webSite(DEFAULT_WEB_SITE);
         return correspondentContact;
     }
+    /**
+     * Create an updated entity for this test.
+     *
+     * This is a static method, as tests for other entities might also need it,
+     * if they test an entity which requires the current entity.
+     */
+    public static CorrespondentContact createUpdatedEntity(EntityManager em) {
+        CorrespondentContact correspondentContact = new CorrespondentContact()
+            .correspondentContactName(UPDATED_CORRESPONDENT_CONTACT_NAME)
+            .eMail(UPDATED_E_MAIL)
+            .telephoneOffice(UPDATED_TELEPHONE_OFFICE)
+            .telephone(UPDATED_TELEPHONE)
+            .webSite(UPDATED_WEB_SITE);
+        return correspondentContact;
+    }
 
-    @Before
+    @BeforeEach
     public void initTest() {
         correspondentContact = createEntity(em);
     }
@@ -166,6 +178,7 @@ public class CorrespondentContactResourceIntTest {
         List<CorrespondentContact> correspondentContactList = correspondentContactRepository.findAll();
         assertThat(correspondentContactList).hasSize(databaseSizeBeforeCreate);
     }
+
 
     @Test
     @Transactional
@@ -223,7 +236,6 @@ public class CorrespondentContactResourceIntTest {
             .andExpect(jsonPath("$.[*].webSite").value(hasItem(DEFAULT_WEB_SITE.toString())));
     }
     
-
     @Test
     @Transactional
     public void getCorrespondentContact() throws Exception {
@@ -441,7 +453,7 @@ public class CorrespondentContactResourceIntTest {
     @Transactional
     public void getAllCorrespondentContactsByCorrespondentIsEqualToSomething() throws Exception {
         // Initialize the database
-        Correspondent correspondent = CorrespondentResourceIntTest.createEntity(em);
+        Correspondent correspondent = CorrespondentResourceIT.createEntity(em);
         em.persist(correspondent);
         em.flush();
         correspondentContact.setCorrespondent(correspondent);
@@ -456,22 +468,28 @@ public class CorrespondentContactResourceIntTest {
     }
 
     /**
-     * Executes the search, and checks that the default entity is returned
+     * Executes the search, and checks that the default entity is returned.
      */
     private void defaultCorrespondentContactShouldBeFound(String filter) throws Exception {
         restCorrespondentContactMockMvc.perform(get("/api/correspondent-contacts?sort=id,desc&" + filter))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(correspondentContact.getId().intValue())))
-            .andExpect(jsonPath("$.[*].correspondentContactName").value(hasItem(DEFAULT_CORRESPONDENT_CONTACT_NAME.toString())))
-            .andExpect(jsonPath("$.[*].eMail").value(hasItem(DEFAULT_E_MAIL.toString())))
-            .andExpect(jsonPath("$.[*].telephoneOffice").value(hasItem(DEFAULT_TELEPHONE_OFFICE.toString())))
-            .andExpect(jsonPath("$.[*].telephone").value(hasItem(DEFAULT_TELEPHONE.toString())))
-            .andExpect(jsonPath("$.[*].webSite").value(hasItem(DEFAULT_WEB_SITE.toString())));
+            .andExpect(jsonPath("$.[*].correspondentContactName").value(hasItem(DEFAULT_CORRESPONDENT_CONTACT_NAME)))
+            .andExpect(jsonPath("$.[*].eMail").value(hasItem(DEFAULT_E_MAIL)))
+            .andExpect(jsonPath("$.[*].telephoneOffice").value(hasItem(DEFAULT_TELEPHONE_OFFICE)))
+            .andExpect(jsonPath("$.[*].telephone").value(hasItem(DEFAULT_TELEPHONE)))
+            .andExpect(jsonPath("$.[*].webSite").value(hasItem(DEFAULT_WEB_SITE)));
+
+        // Check, that the count call also returns 1
+        restCorrespondentContactMockMvc.perform(get("/api/correspondent-contacts/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
     }
 
     /**
-     * Executes the search, and checks that the default entity is not returned
+     * Executes the search, and checks that the default entity is not returned.
      */
     private void defaultCorrespondentContactShouldNotBeFound(String filter) throws Exception {
         restCorrespondentContactMockMvc.perform(get("/api/correspondent-contacts?sort=id,desc&" + filter))
@@ -479,7 +497,14 @@ public class CorrespondentContactResourceIntTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restCorrespondentContactMockMvc.perform(get("/api/correspondent-contacts/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
     }
+
 
     @Test
     @Transactional
@@ -533,7 +558,7 @@ public class CorrespondentContactResourceIntTest {
         // Create the CorrespondentContact
         CorrespondentContactDTO correspondentContactDTO = correspondentContactMapper.toDto(correspondentContact);
 
-        // If the entity doesn't have an ID, it will throw BadRequestAlertException 
+        // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCorrespondentContactMockMvc.perform(put("/api/correspondent-contacts")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
             .content(TestUtil.convertObjectToJsonBytes(correspondentContactDTO)))
@@ -552,10 +577,10 @@ public class CorrespondentContactResourceIntTest {
 
         int databaseSizeBeforeDelete = correspondentContactRepository.findAll().size();
 
-        // Get the correspondentContact
+        // Delete the correspondentContact
         restCorrespondentContactMockMvc.perform(delete("/api/correspondent-contacts/{id}", correspondentContact.getId())
             .accept(TestUtil.APPLICATION_JSON_UTF8))
-            .andExpect(status().isOk());
+            .andExpect(status().isNoContent());
 
         // Validate the database is empty
         List<CorrespondentContact> correspondentContactList = correspondentContactRepository.findAll();

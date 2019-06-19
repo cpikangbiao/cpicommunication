@@ -4,7 +4,7 @@
       "packageName": "com.cpi.communication",
       "nativeLanguage": "en"
     },
-    "jhipsterVersion": "5.2.1",
+    "jhipsterVersion": "6.1.0",
     "applicationType": "microservice",
     "baseName": "cpicommunication",
     "packageName": "com.cpi.communication",
@@ -34,6 +34,9 @@
       "zh-cn"
     ],
     "skipClient": true,
-    "skipUserManagement": true
+    "skipUserManagement": true,
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "otherModules": []
   }
 }

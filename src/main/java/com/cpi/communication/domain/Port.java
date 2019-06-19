@@ -1,5 +1,4 @@
 package com.cpi.communication.domain;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -7,7 +6,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * A Port.
@@ -33,7 +31,7 @@ public class Port implements Serializable {
     private String portNameChinese;
 
     @ManyToOne
-    @JsonIgnoreProperties("")
+    @JsonIgnoreProperties("ports")
     private Country country;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
@@ -103,19 +101,15 @@ public class Port implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof Port)) {
             return false;
         }
-        Port port = (Port) o;
-        if (port.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), port.getId());
+        return id != null && id.equals(((Port) o).id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return 31;
     }
 
     @Override
